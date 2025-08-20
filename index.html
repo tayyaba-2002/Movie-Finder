@@ -255,10 +255,10 @@
       <div class="plot">${shortPlot}</div>
 
       <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
-        <button class="btn secondary toggleBtn" type="button">Show More</button>
-        ${imdbUrl ? `<a class="btn secondary" href="${imdbUrl}" target="_blank" rel="noopener noreferrer">View on IMDb</a>` : ''}
-        <button class="favorite-btn" data-id="${movie.imdbID}">⭐</button>
-      </div>
+      <button class="btn secondary toggleBtn" type="button">Show More</button>
+      ${imdbUrl ? `<a class="btn secondary" href="${imdbUrl}" target="_blank" rel="noopener noreferrer">View on IMDb</a>` : ''}
+      <button class="favorite-btn" data-id="${d.imdbID}">⭐</button>
+</div>
 
       <div class="extra" style="display:none; margin-top:8px; font-size:13px; color:var(--muted)">
         <p><strong>Genre:</strong> ${d.Genre || '—'}</p>
