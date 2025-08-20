@@ -234,25 +234,44 @@
     }
 
     function renderCard(d){
-      const poster = (d.Poster && d.Poster !== 'N/A') ? d.Poster : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 450%22%3E%3Crect width=%22300%22 height=%22450%22 fill=%22%23161625%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23b7b9c9%22 font-family=%22Arial%22 font-size=%2230%22%3ENo Poster%3C/text%3E%3C/svg%3E';
-      const title = d.Title || 'Untitled';
-      const year = d.Year || '—';
-      const imdb = (d.imdbRating && d.imdbRating !== 'N/A') ? `⭐ ${d.imdbRating}` : '⭐ —';
-      const plot = (d.Plot && d.Plot !== 'N/A') ? d.Plot : 'Plot unavailable.';
+  const poster = (d.Poster && d.Poster !== 'N/A') ? d.Poster : 'data:image/svg+xml,...';
+  const title = d.Title || 'Untitled';
+  const year = d.Year || '—';
+  const imdb = (d.imdbRating && d.imdbRating !== 'N/A') ? `⭐ ${d.imdbRating}` : '⭐ —';
+  const shortPlot = (d.Plot && d.Plot !== 'N/A') ? d.Plot : 'Plot unavailable.';
 
-      const card = document.createElement('article');
-      card.className = 'card';
-      card.innerHTML = `
-        <img class="poster" alt="Poster for ${title}" loading="lazy" src="${poster}">
-        <div class="card-content">
-          <div class="title">${title}</div>
-          <div class="meta">${year}</div>
-          <div class="rating">${imdb}</div>
-          <div class="plot">${plot}</div>
-        </div>
-      `;
-      return card;
-    }
+  const card = document.createElement('article');
+  card.className = 'card';
+  card.innerHTML = `
+    <img class="poster" alt="Poster for ${title}" loading="lazy" src="${poster}">
+    <div class="card-content">
+      <div class="title">${title}</div>
+      <div class="meta">${year}</div>
+      <div class="rating">${imdb}</div>
+      <div class="plot">${shortPlot}</div>
+
+      <button class="btn secondary toggleBtn">Show More</button>
+      <div class="extra" style="display:none; margin-top:8px; font-size:13px; color:var(--muted)">
+        <p><strong>Genre:</strong> ${d.Genre || '—'}</p>
+        <p><strong>Runtime:</strong> ${d.Runtime || '—'}</p>
+        <p><strong>Cast:</strong> ${d.Actors || '—'}</p>
+        <p><strong>Plot:</strong> ${d.Plot || '—'}</p>
+      </div>
+    </div>
+  `;
+
+  // add toggle behavior
+  const btn = card.querySelector('.toggleBtn');
+  const extra = card.querySelector('.extra');
+  btn.addEventListener('click', () => {
+    const open = extra.style.display === 'block';
+    extra.style.display = open ? 'none' : 'block';
+    btn.textContent = open ? 'Show More' : 'Show Less';
+  });
+
+  return card;
+}
+
 
     $('#searchBtn').addEventListener('click', () => {
       const q = $('#query').value.trim();
