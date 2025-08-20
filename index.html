@@ -346,32 +346,35 @@ function toggleDetails() {
     }
 }
 
-let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+// Initialize favorites from localStorage
+let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-function toggleFavorite(movie) {
-  const exists = favorites.find(f => f.imdbID === movie.imdbID);
-  if (exists) {
-    favorites = favorites.filter(f => f.imdbID !== movie.imdbID);
+// Function to toggle favorite
+function toggleFavorite(id, button) {
+  if (favorites.includes(id)) {
+    // Remove from favorites
+    favorites = favorites.filter(favId => favId !== id);
+    button.textContent = '⭐'; // Not favorited
   } else {
-    favorites.push(movie);
+    // Add to favorites
+    favorites.push(id);
+    button.textContent = '💛'; // Favorited (you can use any emoji)
   }
-  localStorage.setItem("favorites", JSON.stringify(favorites));
-  displayFavorites();
+  localStorage.setItem('favorites', JSON.stringify(favorites));
 }
 
-function displayFavorites() {
-  const favContainer = document.getElementById("favorites");
-  favContainer.innerHTML = "";
-  favorites.forEach(movie => {
-    favContainer.innerHTML += `
-      <div class="movie-card">
-        <h3>${movie.Title} (${movie.Year})</h3>
-        <img src="${movie.Poster}" />
-        <a href="https://www.imdb.com/title/${movie.imdbID}/" target="_blank">View on IMDb</a>
-      </div>
-    `;
-  });
+// When rendering a card, set button state
+function updateFavoriteButton(button, id) {
+  button.textContent = favorites.includes(id) ? '💛' : '⭐';
 }
+
+// After your card is appended to the DOM
+card.querySelectorAll('.favorite-btn').forEach(btn => {
+  const id = btn.dataset.id;
+  updateFavoriteButton(btn, id);
+  btn.addEventListener('click', () => toggleFavorite(id, btn));
+});
+
   </script>
 </body>
 </html>
