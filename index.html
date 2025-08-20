@@ -273,6 +273,53 @@
       const last = localStorage.getItem(STORAGE.lastQuery);
       if(last){ $('#query').value = last; }
     })();
+
+    async function fetchMovie() {
+    const movie = document.getElementById("movieInput").value;
+    if (!movie) {
+        alert("Please enter a movie name!");
+        return;
+    }
+
+    const apiKey = "YOUR_API_KEY"; // hardcode API key here
+    const response = await fetch(`https://www.omdbapi.com/?t=${movie}&apikey=${apiKey}&plot=full`);
+    const data = await response.json();
+
+    if (data.Response === "True") {
+        document.getElementById("movieResult").innerHTML = `
+            <div class="movie-card">
+                <h2>${data.Title} (${data.Year})</h2>
+                <img src="${data.Poster}" alt="Poster">
+                <p><strong>IMDb Rating:</strong> ${data.imdbRating}</p>
+                
+                <button onclick="toggleDetails()">Show More</button>
+                
+                <div id="details" style="display:none; margin-top:10px;">
+                    <p><strong>Genre:</strong> ${data.Genre}</p>
+                    <p><strong>Runtime:</strong> ${data.Runtime}</p>
+                    <p><strong>Cast:</strong> ${data.Actors}</p>
+                    <p><strong>Plot:</strong> ${data.Plot}</p>
+                </div>
+            </div>
+        `;
+    } else {
+        document.getElementById("movieResult").innerHTML = `<p>Movie not found!</p>`;
+    }
+}
+
+function toggleDetails() {
+    const details = document.getElementById("details");
+    const button = details.previousElementSibling;
+
+    if (details.style.display === "none") {
+        details.style.display = "block";
+        button.textContent = "Show Less";
+    } else {
+        details.style.display = "none";
+        button.textContent = "Show More";
+    }
+}
+
   </script>
 </body>
 </html>
