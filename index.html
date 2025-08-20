@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎬 Movie Finder</title>
+  <meta name="description" content="Search for movies with OMDb API: title, poster, year, IMDb rating, and short plot." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Ctext y='52%25' x='15%25' font-size='140'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --bg: #0b0b12;
+      --panel: #12121b;
+      --text: #f7f7fb;
+      --muted:#b7b9c9;
+      --primary:#6c9cff;
+      --accent:#a78bfa;
+      --card:#161625;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .light{
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --text: #0f1222;
+      --muted:#53576e;
+      --primary:#3b82f6;
+      --accent:#7c3aed;
+      --card:#ffffff;
+      --shadow: 0 10px 25px rgba(0,0,0,.07);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg); color: var(--text);
+    }
+    .container{max-width:1100px; margin:0 auto; padding:24px}
+
+    header{
+      display:flex; align-items:center; gap:16px; justify-content:space-between; flex-wrap:wrap;
+      background: var(--panel); padding:14px 16px; border-radius:18px; box-shadow: var(--shadow);
+    }
+    .brand{display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.3px}
+    .brand .logo{width:36px; height:36px; display:grid; place-items:center; border-radius:12px; background: linear-gradient(135deg,var(--primary),var(--accent));}
+    .brand span{font-size:18px}
+
+    .controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    input[type="text"], input[type="password"], input[type="search"]{
+      background: var(--card); color: var(--text); border: 1px solid transparent; outline:none;
+      padding:10px 12px; border-radius:12px; box-shadow: var(--shadow);
+    }
+    input::placeholder{color: var(--muted)}
+    button{cursor:pointer; border:none; border-radius:12px; padding:10px 14px; font-weight:600}
+    .btn{background: linear-gradient(135deg,var(--primary),var(--accent)); color:white; box-shadow: var(--shadow)}
+    .btn.secondary{background: transparent; color: var(--text); border:1px solid rgba(255,255,255,.12)}
+
+    .searchbar{display:flex; gap:10px; flex:1; min-width:240px}
+    .searchbar input{flex:1}
+
+    .theme-toggle{display:flex; align-items:center; gap:8px}
+    .theme-toggle button{background: var(--card); color: var(--text)}
+
+    .api-key{display:flex; align-items:center; gap:8px}
+    .api-key input{width:210px}
+
+    main{margin-top:18px}
+
+    .results-grid{
+      display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:16px;
+    }
+    .card{
+      background: var(--card); border:1px solid rgba(255,255,255,.08); border-radius:18px; overflow:hidden; display:flex; flex-direction:column;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .card:hover{transform: translateY(-4px); box-shadow: var(--shadow)}
+    .poster{width:100%; aspect-ratio:2/3; object-fit:cover; background:#0f0f18}
+    .card-content{padding:12px 14px; display:grid; gap:6px}
+    .title{font-weight:700}
+    .meta{font-size:13px; color: var(--muted)}
+    .rating{font-size:13px; font-weight:700}
+    .plot{font-size:13px; color: var(--muted); line-height:1.4; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden}
+
+    .status{display:flex; align-items:center; justify-content:center; gap:8px; color:var(--muted); padding:28px; text-align:center}
+
+    .load-more{display:flex; justify-content:center; margin:24px 0}
+
+    .footer-note{color:var(--muted); font-size:12px; text-align:center; margin-top:12px}
+
+    @media (max-width:560px){
+      .api-key input{width:160px}
+      .brand span{display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand" aria-label="Movie Finder">
+        <div class="logo">🎬</div>
+        <span>Movie Finder</span>
+      </div>
+
+      <div class="controls" role="search">
+        <div class="api-key" title="Get a free key from omdbapi.com">
+          <input id="apiKey" type="password" placeholder="OMDb API key" aria-label="OMDb API key" />
+          <button class="btn secondary" id="saveKeyBtn" aria-label="Save API key">Save</button>
+        </div>
+
+        <div class="searchbar">
+          <input id="query" type="search" placeholder="Search movies… (e.g., Inception)" aria-label="Search movies" />
+          <button class="btn" id="searchBtn" aria-label="Search">Search</button>
+        </div>
+
+        <div class="theme-toggle">
+          <button id="themeBtn" class="secondary" aria-label="Toggle light/dark">🌙</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="status" class="status">Enter a title and hit Search.</div>
+
+      <section id="results" class="results-grid" aria-live="polite" aria-busy="false"></section>
+
+      <div class="load-more">
+        <button id="loadMoreBtn" class="btn secondary" hidden>Load more</button>
+      </div>
+
+      <p class="footer-note">Shows title, poster, year, IMDb rating, and a short plot using the OMDb API.</p>
+    </main>
+  </div>
+
+  <script>
+    // --- Utilities ---
+    const $ = (s, root=document) => root.querySelector(s);
+
+    const STORAGE = {
+      theme: 'moviefinder:theme',
+      apiKey: 'moviefinder:omdb-key',
+      lastQuery: 'moviefinder:last-query'
+    };
+
+    // --- Theme ---
+    function applyTheme(theme){
+      if(theme === 'light') document.body.classList.add('light');
+      else document.body.classList.remove('light');
+      $('#themeBtn').textContent = theme === 'light' ? '☀️' : '🌙';
+      localStorage.setItem(STORAGE.theme, theme);
+    }
+
+    (function initTheme(){
+      const stored = localStorage.getItem(STORAGE.theme);
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      applyTheme(stored || (prefersLight ? 'light' : 'dark'));
+    })();
+
+    $('#themeBtn').addEventListener('click', () => {
+      const now = document.body.classList.contains('light') ? 'dark' : 'light';
+      applyTheme(now);
+    });
+
+    // --- API Key handling ---
+    const apiKeyInput = $('#apiKey');
+    const savedKey = localStorage.getItem(STORAGE.apiKey);
+    if (savedKey) apiKeyInput.value = savedKey;
+
+    $('#saveKeyBtn').addEventListener('click', () => {
+      localStorage.setItem(STORAGE.apiKey, apiKeyInput.value.trim());
+      apiKeyInput.type = 'password';
+      flashStatus('✅ API key saved.');
+    });
+
+    apiKeyInput.addEventListener('dblclick', () => {
+      // quick peek
+      apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+    });
+
+    // --- Search logic ---
+    const resultsEl = $('#results');
+    const statusEl = $('#status');
+    const loadMoreBtn = $('#loadMoreBtn');
+
+    let currentQuery = '';
+    let currentPage = 1;
+    let totalResults = 0;
+    let abortController = null;
+
+    function flashStatus(msg){
+      statusEl.textContent = msg;
+      statusEl.hidden = false;
+    }
+
+    function setBusy(busy){
+      if(busy){
+        statusEl.innerHTML = '<span class="spinner" aria-hidden="true">⏳</span> Loading…';
+        statusEl.hidden = false;
+        $('#results').setAttribute('aria-busy','true');
+      } else {
+        $('#results').setAttribute('aria-busy','false');
+      }
+    }
+
+    async function search(query, page=1){
+      const key = (apiKeyInput.value || '').trim();
+      if(!key){
+        flashStatus('Enter your OMDb API key first. (Get one free at omdbapi.com)');
+        return;
+      }
+
+      if(abortController) abortController.abort();
+      abortController = new AbortController();
+
+      setBusy(true);
+      loadMoreBtn.hidden = true;
+      try{
+        const sUrl = new URL('https://www.omdbapi.com/');
+        sUrl.search = new URLSearchParams({ apikey:key, s:query, type:'movie', page:String(page) }).toString();
+        const sRes = await fetch(sUrl, { signal: abortController.signal });
+        const sData = await sRes.json();
+
+        if(sData.Response === 'False'){
+          if(page === 1) resultsEl.innerHTML = '';
+          flashStatus(sData.Error || 'No results.');
+          setBusy(false);
+          return;
+        }
+
+        totalResults = parseInt(sData.totalResults || '0', 10);
+        if(page === 1){
+          resultsEl.innerHTML = '';
+          statusEl.hidden = true;
+        }
+
+        // For each item, fetch details to get plot and imdbRating
+        const items = sData.Search;
+        const details = await Promise.all(items.map(async (it) => {
+          try{
+            const dUrl = new URL('https://www.omdbapi.com/');
+            dUrl.search = new URLSearchParams({ apikey:key, i:it.imdbID, plot:'short' }).toString();
+            const r = await fetch(dUrl, { signal: abortController.signal });
+            const j = await r.json();
+            return j;
+          }catch(err){ return it; }
+        }));
+
+        for(const d of details){
+          resultsEl.appendChild(renderCard(d));
+        }
+
+        const shown = resultsEl.children.length;
+        const moreAvailable = shown < totalResults;
+        loadMoreBtn.hidden = !moreAvailable;
+        loadMoreBtn.disabled = !moreAvailable;
+        setBusy(false);
+      }catch(err){
+        if(err.name === 'AbortError') return;
+        flashStatus('Something went wrong. Check your connection or API key.');
+        setBusy(false);
+      }
+    }
+
+    function renderCard(d){
+      const poster = (d.Poster && d.Poster !== 'N/A') ? d.Poster : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 450%22%3E%3Crect width=%22300%22 height=%22450%22 fill=%22%23161625%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23b7b9c9%22 font-family=%22Arial%22 font-size=%2230%22%3ENo Poster%3C/text%3E%3C/svg%3E';
+      const title = d.Title || 'Untitled';
+      const year = d.Year || '—';
+      const imdb = (d.imdbRating && d.imdbRating !== 'N/A') ? `⭐ ${d.imdbRating}` : '⭐ —';
+      const plot = (d.Plot && d.Plot !== 'N/A') ? d.Plot : 'Plot unavailable.';
+
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `
+        <img class="poster" alt="Poster for ${title}" loading="lazy" src="${poster}">
+        <div class="card-content">
+          <div class="title">${title}</div>
+          <div class="meta">${year}</div>
+          <div class="rating">${imdb}</div>
+          <div class="plot">${plot}</div>
+        </div>
+      `;
+      return card;
+    }
+
+    // --- Events ---
+    $('#searchBtn').addEventListener('click', () => {
+      const q = $('#query').value.trim();
+      if(!q) return flashStatus('Type a movie title to search.');
+      currentQuery = q; currentPage = 1; localStorage.setItem(STORAGE.lastQuery, q);
+      search(currentQuery, currentPage);
+    });
+
+    $('#query').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') $('#searchBtn').click();
+    });
+
+    loadMoreBtn.addEventListener('click', () => {
+      currentPage += 1; search(currentQuery, currentPage);
+    });
+
+    // Restore last query
+    (function restore(){
+      const last = localStorage.getItem(STORAGE.lastQuery);
+      if(last){ $('#query').value = last; }
+    })();
+  </script>
+</body>
+</html>
