@@ -239,6 +239,7 @@
   const year = d.Year || '—';
   const imdb = (d.imdbRating && d.imdbRating !== 'N/A') ? `⭐ ${d.imdbRating}` : '⭐ —';
   const shortPlot = (d.Plot && d.Plot !== 'N/A') ? d.Plot : 'Plot unavailable.';
+  const imdbUrl = `https://www.imdb.com/title/${movie.imdbID}/`;
 
   const card = document.createElement('article');
   card.className = 'card';
@@ -256,7 +257,7 @@
         <p><strong>Runtime:</strong> ${d.Runtime || '—'}</p>
         <p><strong>Cast:</strong> ${d.Actors || '—'}</p>
         <p><strong>Plot:</strong> ${d.Plot || '—'}</p>
-        <a href="https://www.imdb.com/title/${movie.imdbID}/" target="_blank">View on IMDb</a>
+        <a href="${imdbUrl}" target="_blank" class="imdb-btn">View on IMDb</a>
 
       </div>
     </div>
