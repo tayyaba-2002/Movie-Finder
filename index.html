@@ -240,13 +240,13 @@ function renderCard(d){
     : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 450%22%3E%3Crect width=%22300%22 height=%22450%22 fill=%22%23161625%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23b7b9c9%22 font-family=%22Arial%22 font-size=%2230%22%3ENo%20Poster%3C/text%3E%3C/svg%3E';
   const title = d.Title || 'Untitled';
   const year  = d.Year  || '—';
-  const imdb  = (d.imdbRating && d.imdbRating !== 'N/A') ? ⭐ ${d.imdbRating} : '⭐ —';
+  const imdb  = (d.imdbRating && d.imdbRating !== 'N/A') ? `⭐ ${d.imdbRating}` : '⭐ —';
   const shortPlot = (d.Plot && d.Plot !== 'N/A') ? d.Plot : 'Plot unavailable.';
-  const imdbUrl = d.imdbID ? https://www.imdb.com/title/${d.imdbID}/ : null;
+  const imdbUrl = d.imdbID ? `https://www.imdb.com/title/${d.imdbID}/` : null;
 
   const card = document.createElement('article');
   card.className = 'card';
-  card.innerHTML = 
+  card.innerHTML = `
     <img class="poster" alt="Poster for ${title}" loading="lazy" src="${poster}">
     <div class="card-content">
       <div class="title">${title}</div>
@@ -255,10 +255,10 @@ function renderCard(d){
       <div class="plot">${shortPlot}</div>
 
       <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
-      <button class="btn secondary toggleBtn" type="button">Show More</button>
-      ${imdbUrl ? <a class="btn secondary" href="${imdbUrl}" target="_blank" rel="noopener noreferrer">View on IMDb</a> : ''}
-      <button class="favorite-btn" data-id="${d.imdbID}">⭐</button>
-</div>
+        <button class="btn secondary toggleBtn" type="button">Show More</button>
+        ${imdbUrl ? `<a class="btn secondary" href="${imdbUrl}" target="_blank" rel="noopener noreferrer">View on IMDb</a>` : ''}
+        <button class="favorite-btn" data-id="${d.imdbID}">⭐</button>
+      </div>
 
       <div class="extra" style="display:none; margin-top:8px; font-size:13px; color:var(--muted)">
         <p><strong>Genre:</strong> ${d.Genre || '—'}</p>
@@ -267,21 +267,19 @@ function renderCard(d){
         <p><strong>Plot:</strong> ${d.Plot || '—'}</p>
       </div>
     </div>
-  ;
+  `;
 
   const btn = card.querySelector('.toggleBtn');
   const extra = card.querySelector('.extra');
   btn.addEventListener('click', () => {
     const open = extra.style.display === 'block';
-    extra.style.display = open ? 'none': 'block';
-    btn.textContent = open ? 'Show More': 'Show Less';
+    extra.style.display = open ? 'none' : 'block';
+    btn.textContent = open ? 'Show More' : 'Show Less';
   });
 
-  // --- Favorite button setup ---
+  // Favorite button setup
   const favBtn = card.querySelector('.favorite-btn');
-  // Set initial state
   favBtn.textContent = favorites.includes(d.imdbID) ? '💛' : '⭐';
-  // Click handler
   favBtn.addEventListener('click', () => {
     if(favorites.includes(d.imdbID)){
       favorites = favorites.filter(id => id !== d.imdbID);
